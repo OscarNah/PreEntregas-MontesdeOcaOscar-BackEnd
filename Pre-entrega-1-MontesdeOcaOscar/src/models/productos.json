@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "title": "Producto prueba 1",
+    "description": "Esto es el producto prueba numero 1",
+    "price": 100,
+    "image": "sin imagen 1",
+    "code": "abc1",
+    "stock": 10,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 2,
+    "title": "Producto prueba 2",
+    "description": "Esto es el producto prueba numero 2",
+    "price": 200,
+    "image": "sin imagen 2",
+    "code": "abc2",
+    "stock": 20,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 3,
+    "title": "Producto prueba 3",
+    "description": "Esto es el producto prueba numero 3",
+    "price": 300,
+    "image": "sin imagen 3",
+    "code": "abc3",
+    "stock": 30,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 4,
+    "title": "Producto prueba 4",
+    "description": "Esto es el producto prueba numero 4",
+    "price": 400,
+    "image": "sin imagen 4",
+    "code": "abc4",
+    "stock": 40,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 5,
+    "title": "Producto prueba 5",
+    "description": "Esto es el producto prueba numero 5",
+    "price": 500,
+    "image": "sin imagen 5",
+    "code": "abc5",
+    "stock": 50,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 6,
+    "title": "Producto prueba 6",
+    "description": "Esto es el producto prueba numero 6",
+    "price": 600,
+    "image": "sin imagen 6",
+    "code": "abc6",
+    "stock": 60,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 7,
+    "title": "Producto prueba 7",
+    "description": "Esto es el producto prueba numero 7",
+    "price": 700,
+    "image": "sin imagen 7",
+    "code": "abc7",
+    "stock": 70,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 8,
+    "title": "Producto prueba 8",
+    "description": "Esto es el producto prueba numero 8",
+    "price": 800,
+    "image": "sin imagen 8",
+    "code": "abc8",
+    "stock": 80,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 9,
+    "title": "Producto prueba 9",
+    "description": "Esto es el producto prueba numero 9",
+    "price": 900,
+    "image": "sin imagen 9",
+    "code": "abc9",
+    "stock": 90,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  },
+  {
+    "id": 10,
+    "title": "Producto prueba 10",
+    "description": "Esto es el producto prueba numero 10",
+    "price": 1000,
+    "image": "sin imagen 10",
+    "code": "abc10",
+    "stock": 100,
+    "category": "Prueba",
+    "status": true,
+    "thumbnails": []
+  }
+]
