@@ -1,0 +1,30 @@
+<header>
+<h1 style="text-align: center;"> Productos </h1>
+</header>
+
+<div class="container">
+{{#each productos}}
+ <div class="productCard">
+    <img class="productImage" src="https://images2.alphacoders.com/515/515958.jpg">
+    <div class="productDetails">
+        <h2 style="border-bottom: 1px solid black;" class="productName">{{title}}</h2>
+        <p class="productDescription">
+            <p>{{description}}</p><br>
+            <p style="border-top: 1px solid black;">Price: ${{price}}</p><br>
+            <p style="border-top: 1px solid black;">Category: {{category}} </p><br>
+        </p>
+    <button class="btnAgregar"> Agregar al Carrito </button>
+    </div>
+ </div>
+{{/each}}
+</div>
+
+<div class="paginacion">
+{{#if hasPrevPage}}
+    <a class="btnPage" href="/products?page={{prevPage}}"> Anterior <a/>
+{{/if}}
+<p class="numeroPagina"> Pagina {{currentPage}} de {{totalPages}} </p>
+{{#if hasNextPage}}
+    <a class="btnPage" href="/products?page={{nextPage}}"> Siguiente <a/>
+{{/if}} 
+</div>
