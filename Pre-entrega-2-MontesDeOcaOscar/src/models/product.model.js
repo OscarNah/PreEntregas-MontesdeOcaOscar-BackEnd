@@ -14,12 +14,12 @@ const productSchema = new mongoose.Schema({
         required: true
     },
     img: {
-        type: String
-    }, 
+        type: String, 
+    },
     code: {
-        type:String, 
-        unique: true, 
-        required: true
+        type: String, 
+        required: true,
+        unique: true
     },
     stock: {
         type: Number, 
@@ -34,10 +34,10 @@ const productSchema = new mongoose.Schema({
         required: true
     },
     thumbnails: {
-        type: [String]
-    }
-});
+        type: [String], 
+    },
+})
 
-const ProductModel = mongoose.model("products", productSchema);
+const ProductModel = mongoose.model("Product", productSchema);
 
-module.exports = ProductModel; 
+module.exports = ProductModel;

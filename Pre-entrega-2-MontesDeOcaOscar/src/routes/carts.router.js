@@ -21,7 +21,6 @@ router.get("/:cid", async (req, res) => {
 
   try {
     const carrito = await CartModel.findById(cartId);
-    res.json(carrito.products);
     if (!carrito) {
       console.log("No existe ningun carrito con ese id");
       return res.status(404).json({ error: "Carrito no encontrado" });

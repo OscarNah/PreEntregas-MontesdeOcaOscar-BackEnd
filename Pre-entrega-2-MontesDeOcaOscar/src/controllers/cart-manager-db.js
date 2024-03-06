@@ -11,24 +11,20 @@ class CartManager {
             return nuevoCarrito;
         } catch (error) {
             console.log("Error al crear un carrito nuevo", error);
-            throw error; 
         }
     }
     // 2. Obtener carrito por ID
     async getCarritoById(cartId) {
         try {
             const carrito = await CartModel.findById(cartId);
-
-            if(!carrito) {
-                console.log("No hay carrito con ese ID");
-                return null; 
+            if (!carrito) {
+                console.log("No existe carrito con ese id");
+                return null;
             }
-            
-            return carrito;
 
+            return carrito;
         } catch (error) {
-            console.log("Error al obtener el carrito con el ID proporcionado", error);
-            throw error; 
+            console.log("Error al traer el carrito.", error);
         }
     }
     // 3. Agregar Producto al carrito usando el ID del producto
