@@ -94,6 +94,19 @@ router.get("/profile", (req, res) => {
    res.render("profile", { user: req.session.user });
 });
 
+//Ruta admin:
+
+router.get("/admin", (req, res, next) => {
+   if (!req.isAuthenticated()) {
+       return res.redirect('/login'); // Redirigir si el usuario no está autenticado
+   }
+   if (req.user.rol !== "admin") {
+       return res.status(403).send("Accesso denegado, no eres administrador rata de 2 patas!!!!");
+   }
+   // Y si sos admin podes pasar al tablero de admin. 
+   res.render("admin");
+});
+
 
 
 module.exports = router;
