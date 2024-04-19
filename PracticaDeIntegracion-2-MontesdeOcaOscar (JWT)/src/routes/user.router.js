@@ -1,137 +1,133 @@
 const express = require("express");
 const router = express.Router();
-const userModel = require("../models/user.model.js");
 const passport = require("passport");
+const UserModel = require("../models/user.model.js");
 const jwt = require("jsonwebtoken");
+const { createHash, isValidPassword } = require("../utils/hashbcryp.js");
 
-//Register: 
+//PASSPORT CON JWT:
 
+//Register:
 router.post("/register", async (req, res) => {
-    const {first_name, last_name, email, password, age,} = req.body; 
-    try {
-        //1) Verificamos si el usuario existe en nuestra BD. 
-        const existeUsuario = await userModel.findOne({email});
+   const { first_name, last_name, email, password, age } = req.body;
+   try {
+      // Verificar si el usuario ya existe
+      const existeUsuario = await UserModel.findOne({ email });
+      //console.log(existeUsuario);
+      if (existeUsuario) {
+         return res.status(400).send("El usuario ya existe");
+      }
 
-        if(existeUsuario) {
-            return res.status(400).send("El usuario ya existe");
-        }
+      // Crear un nuevo usuario
+      const nuevoUsuario = new UserModel({
+         first_name,
+         last_name,
+         email,
+         password: createHash(password),
+         age,
+      });
 
-        //2) Creamos un nuevo usuario: 
-        const nuevoUsuario = new userModel({
-            first_name,
-            last_name,
-            email, 
-            password,
-            age,
-        });
+      await nuevoUsuario.save();
 
-        //3) Lo guardamos en la BD. 
-        await nuevoUsuario.save();
+      // Generar el token JWT
+      const token = jwt.sign({ user: nuevoUsuario }, "coderhouse", {
+         expiresIn: "1h",
+      });
 
-        //4) Generamos el Token de JWT. 
-        const token = jwt.sign({first_name}, {last_name}, {email}, {age}, "coderhouse", {expiresIn:"1h"});
+      // Establecer el token como cookie
+      res.cookie("cookieCoderhouse", token, {
+         maxAge: 3600000, // 1 hora de expiración
+         httpOnly: true, // La cookie solo es accesible mediante HTTP(S)
+      });
 
-        //5) Mandamos como cookie el token: 
-        res.cookie("coderCookieToken", token, {
-            maxAge: 3600000, //1 hora de expiración
-            httpOnly: true //La cookie solo se puede acceder mediante HTTP. 
-        });
-
-        //6) Lo mandamos al Home: 
-        res.redirect("/home");
-
-    } catch (error) {
-        res.status(500).send("Error interno del servidor");
-    }
-})
-
-
-router.post("/login", async (req, res) => {
-    const {email, password} = req.body; 
-    try {
-        //1) Busco el usuario en MongoDB
-        const usuarioEncontrado = await userModel.findOne({email});
-
-        if(!usuarioEncontrado) {
-            return res.status(401).send("Usuario no valido");
-        }
-
-        //2) Verificamos la contraseña: 
-        if(password !== usuarioEncontrado.password) {
-            return res.status(401).send("Contraseña incorrecta");
-        }
-
-        //3) Generamos el Token de JWT. 
-        const token = jwt.sign({
-            first_name: usuarioEncontrado.first_name,
-            last_name: usuarioEncontrado.last_name,
-            email: usuarioEncontrado.email,
-            age: usuarioEncontrado.age,
-            rol:usuarioEncontrado.rol}, "coderhouse", {expiresIn:"1h"});
-
-        //4) Mandamos como cookie el token: 
-        res.cookie("coderCookieToken", token, {
-            maxAge: 3600000, //1 hora de expiración
-            httpOnly: true //La cookie solo se puede acceder mediante HTTP. 
-        });
-
-        res.redirect("/home");
-    } catch (error) {
-        res.status(500).send("Error interno del servidor"); 
-    }
-})
-
-//Home: 
-
-router.get("/home", passport.authenticate("jwt", {session:false}), (req, res) => {
-    
-    res.render("home", {first_name: req.user.first_name, email: req.user.email});
-})
-
-
-//Logout: 
-
-router.post("/logout", (req, res) => {
-    res.clearCookie("coderCookieToken");
-    res.redirect("/login");
-    //Limpiamos la cookie y lo mandamos al login. 
-})
-
-//Github
-router.get("/github", passport.authenticate("github", {scope: ["user:email"]}) ,async (req, res)=> {})
-//
-router.get("/githubcallback", passport.authenticate("github", { failureRedirect: "/login" }), async (req, res) => {
-    try {
-        // Aquí ya estás autenticado, así que puedes obtener la información del usuario a través de req.user
-        const { first_name, last_name, email } = req.user;
-        console.log(req.user);
-
-        // Generar el token JWT
-        const token = jwt.sign({ first_name, last_name, email }, "coderhouse", { expiresIn: "1h" });
-
-        // Establecer la cookie del token
-        res.cookie("coderCookieToken", token, {
-            maxAge: 3600000, // 1 hora de expiración
-            httpOnly: true // La cookie solo se puede acceder mediante HTTP
-        });
-
-        // Redirigir al usuario a la página de inicio
-        res.redirect("/home");
-    } catch (error) {
-        // Manejar errores de autenticación
-        console.error("Error en la autenticación de GitHub:", error);
-        res.status(500).send("Error interno del servidor");
-    }
+      res.redirect("/api/users/profile");
+   } catch (error) {
+      console.error(error);
+      res.status(500).send("Error interno del servidor");
+   }
 });
 
-//Ruta admin:
+router.post("/login", async (req, res) => {
+   const { email, password } = req.body;
+   try {
+      // Buscar el usuario en MongoDB
+      const usuarioEncontrado = await UserModel.findOne({ email });
 
-router.get("/admin", passport.authenticate("jwt", {session:false}), (req, res) => {
-    if(req.user.rol !== "admin") {
-        return res.status(403).send("Accesso denegado, no eres administrador rata de 2 patas!!!!");
-    }
-    //Y si sos admin podes pasar al tablero de admin. 
-    res.render("admin");
-})
+      // Verificar si el usuario existe
+      if (!usuarioEncontrado) {
+         return res.status(401).send("Usuario no válido");
+      }
+
+      // Verificar la contraseña
+      const esValido = isValidPassword(password, usuarioEncontrado);
+      if (!esValido) {
+         return res.status(401).send("Contraseña incorrecta");
+      }
+
+      // Generar el token JWT
+      const token = jwt.sign({ user: usuarioEncontrado }, "coderhouse", {
+         expiresIn: "1h",
+      });
+
+      // Establecer el token como cookie
+      res.cookie("cookieCoderhouse", token, {
+         maxAge: 3600000, // 1 hora de expiración
+         httpOnly: true, // La cookie solo es accesible mediante HTTP(S)
+      });
+
+      res.redirect("/api/users/profile");
+   } catch (error) {
+      console.error(error);
+      res.status(500).send("Error interno del servidor");
+   }
+});
+
+router.get("/profile", passport.authenticate("jwt", { session: false }), (req, res) => {
+   res.render("profile", req.user);
+   console.log(req.user);
+   console.log("Usuario en la ruta de perfil:", req.user);
+});
+
+router.post("/logout", (req, res) => {
+   // Limpiar la cookie de token
+   res.clearCookie("cookieCoderhouse");
+   // Redirigir a la página de login
+   res.redirect("/login");
+});
+
+//Rutas Github
+router.get('/auth/github',
+  passport.authenticate('github', { scope: ['user:email'] })
+);
+
+router.get('/auth/github/callback', 
+  passport.authenticate('github', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Generar el token JWT después de la autenticación exitosa
+    const token = jwt.sign({ user: req.user }, "coderhouse", {
+      expiresIn: "1h",
+    });
+
+    // Establecer el token como cookie
+    res.cookie("cookieCoderhouse", token, {
+      maxAge: 3600000, // 1 hora de expiración
+      httpOnly: true, // La cookie solo es accesible mediante HTTP(S)
+    });
+
+    // Redirigir al perfil del usuario
+    res.redirect('/api/users/profile');
+  }
+);
+
+
+//Ruta Admin:
+
+router.get("/admin", passport.authenticate("jwt", { session: false }), (req, res) => {
+   if (req.user.user.role !== "admin") {
+      return res.status(403).send("Acceso denegado");
+   }
+   // Si el usuario es administrador, mostrar el dashboard de administrador
+   res.render("admin");
+});
 
 module.exports = router;
