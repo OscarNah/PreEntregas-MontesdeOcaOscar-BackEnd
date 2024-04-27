@@ -75,9 +75,16 @@ class UserController {
    }
 
    async profile(req, res) {
-      const userDto = new UserDTO(req.user.first_name, req.user.last_name, req.user.email, req.user.rol);
-      const isAdmin = req.user.role === "admin";
-      res.render("profile", { user: userDto, isAdmin });
+      try {
+         const userDto = new UserDTO(req.user.first_name, req.user.last_name, req.user.email, req.user.rol);
+         // Verificar si el usuario es administrador
+         const isAdmin = req.user.rol === "admin";
+
+         res.render("profile", { user: userDto, isAdmin }); // Pasar isAdmin a la vista
+      } catch (error) {
+         console.error("Error al obtener el perfil del usuario", error);
+         res.status(500).send("Error interno del servidor");
+      }
    }
 
    async logout(req, res) {

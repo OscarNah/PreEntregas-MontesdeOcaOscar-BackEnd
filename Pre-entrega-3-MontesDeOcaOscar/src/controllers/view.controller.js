@@ -27,6 +27,9 @@ class ViewsController {
                 return { id: _id, ...rest }; // Agregar el ID al objeto
             });
 
+            const cartId = req.user.cart.toString();
+            // console.log(cartId);
+
             res.render("products", {
                 productos: nuevoArray,
                 hasPrevPage,
@@ -35,6 +38,7 @@ class ViewsController {
                 nextPage: page < totalPages ? parseInt(page) + 1 : null,
                 currentPage: parseInt(page),
                 totalPages,
+                cartId
             });
 
         } catch (error) {

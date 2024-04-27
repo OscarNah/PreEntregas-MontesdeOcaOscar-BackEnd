@@ -31,6 +31,9 @@ const userSchema = mongoose.Schema({
         type: String,
         enum: ['admin', 'usuario'],
         default: 'usuario'
+    },cart: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Cart'
     }
 });
 
