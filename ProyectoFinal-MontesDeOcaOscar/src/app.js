@@ -71,6 +71,10 @@ app.use(passport.session());
 app.engine("handlebars", exphbs.engine());
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
+// Configuración de Handlebars con el helper 'eq'
+const hbsHelpers = {
+  eq: (a, b) => a === b
+};
 
 //AuthMiddleware
 app.use(authMiddleware);

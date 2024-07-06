@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const ViewsController = require("../controllers/view.controller.js");
 const viewsController = new ViewsController();
+const authMiddleware = require("../middleware/authmiddleware.js");
 const checkUserRole = require("../middleware/checkrole.js");
 const passport = require("passport");
 
@@ -18,5 +19,7 @@ router.get("/", viewsController.renderHome);
 router.get("/reset-password", viewsController.renderResetPassword);
 router.get("/password", viewsController.renderCambioPassword);
 router.get("/confirmacion-envio", viewsController.renderConfirmacion); 
+//Entrega final
+router.get("/admin", authMiddleware, checkUserRole(['admin']), userController.getUserAdminView);
 
 module.exports = router;

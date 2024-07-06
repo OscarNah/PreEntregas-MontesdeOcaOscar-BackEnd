@@ -1,0 +1,52 @@
+<main>
+  <header>
+    <h1>VISTA DE ADMINISTRADOR</h1>
+  </header>
+  <div class="miPerfil">
+    <h2>ADMINISTRADOR</h2>
+    <h3 id="role">{{role}}</h3>
+    <h3 id="email">{{email}}</h3>
+  </div>
+
+  <section>
+    <h2>Administración de Usuarios</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Correo</th>
+          <th>Rol</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each users}}
+        <tr>
+          <td>{{this.first_name}}</td>
+          <td>{{this.last_name}}</td>
+          <td>{{this.email}}</td>
+          <td>
+            <form action="/api/users/admin/{{this._id}}/role" method="post">
+              <select name="role">
+                <option value="usuario" {{#if (eq this.role 'usuario')}}selected{{/if}}>Usuario</option>
+                <option value="premium" {{#if (eq this.role 'premium')}}selected{{/if}}>Premium</option>
+                <option value="admin" {{#if (eq this.role 'admin')}}selected{{/if}}>Admin</option>
+              </select>
+              <button type="submit">Cambiar Rol</button>
+            </form>
+          </td>
+          <td>
+            <form action="/api/users/admin/{{this._id}}" method="post">
+              <button type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>

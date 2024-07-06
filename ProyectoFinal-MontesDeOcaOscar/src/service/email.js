@@ -54,6 +54,30 @@ class EmailManager {
             throw new Error("Error al enviar correo electrónico");
         }
     }
+
+    async sendInactiveAccountDeletionEmail(email, first_name) {
+        try {
+            const mailOptions = {
+                from: 'TiendaGaming@gmail.com',
+                to: email,
+                subject: 'Su cuenta a sido eliminada por inactividad',
+                html: `
+                    <h1>CEUNTA ELIMINADA DE LA PAGINA TIENDA GAMING</h1>
+                    <p>Hola ${first_name},</p>
+                    <p>Se le informa que su cuenta a sido eliminada debido a la inactividad de su cuenta.</p>
+                    <p>Lo invitamos a registrarse de nuevo</p>
+                    <a href="http://localhost:8080/register">Registrarse nuevamente</a>
+                `
+            };
+
+            await this.transporter.sendMail(mailOptions);
+        } catch (error) {
+            console.error("Error al enviar correo electrónico:", error);
+            throw new Error("Error al enviar correo electrónico");
+        }
+
+        
+    }
 }
 
 module.exports = EmailManager;

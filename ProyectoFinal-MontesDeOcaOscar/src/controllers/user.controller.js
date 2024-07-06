@@ -6,8 +6,8 @@ const UserDTO = require("../dto/user.dto.js");
 const passport = require("passport");
 const { logger } = require("../config/logger.config.js"); // Importar el logger
 const { generateResetToken } = require("../utils/tokenreset.js");
-const fs = require("fs"); // Importa el módulo fs si no lo has hecho ya
-const path = require("path"); // Asegúrate de importar el módulo path
+const fs = require("fs"); 
+const path = require("path"); 
 
 const EmailManager = require("../service/email.js");
 const emailManager = new EmailManager();
@@ -300,6 +300,73 @@ class UserController {
             res.status(500).send("Error interno del servidor");
         }
     }
+
+    //Obtener todos los usuarios
+    async getAllUsers(req, res) {
+        try {
+            const users = await UserModel.find({}, 'first_name last_name email role');
+            res.json(users);
+        } catch (error) {
+            logger.error("Error al obtener todos los usuarios:", error.message);
+            res.status(500).send("Error interno del servidor");
+        }
+    }
+
+    //Eliminar usuarios inactivos
+    async deleteInactiveUsers(req, res) {
+        try {
+            const now = new Date();
+            const inactiveTime = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000); // 2 días atrás
+
+            const inactiveUsers = await UserModel.find({ last_connection: { $lt: inactiveTime } });
+            for (const user of inactiveUsers) {
+                await UserModel.findByIdAndDelete(user._id);
+                await emailManager.sendInactiveAccountDeletionEmail(user.email);
+            }
+
+            res.json({ message: `${inactiveUsers.length} usuarios eliminados por inactividad` });
+        } catch (error) {
+            logger.error("Error al eliminar usuarios inactivos:", error.message);
+            res.status(500).send("Error interno del servidor");
+        }
+    }
+    // Obtener la vista de administración de usuarios
+    async getUserAdminView(req, res) {
+        try {
+            const users = await UserModel.find({}, 'first_name last_name email role');
+            res.render("adminUsers", { users });
+        } catch (error) {
+            logger.error("Error al obtener la vista de administración de usuarios:", error.message);
+            res.status(500).send("Error interno del servidor");
+        }
+    }
+
+    // Cambiar el rol de un usuario
+    async changeUserRole(req, res) {
+        try {
+            const { uid } = req.params;
+            const { role } = req.body;
+            const user = await UserModel.findByIdAndUpdate(uid, { role }, { new: true });
+            res.json(user);
+        } catch (error) {
+            logger.error("Error al cambiar el rol del usuario:", error.message);
+            res.status(500).send("Error interno del servidor");
+        }
+    }
+
+    // Eliminar un usuario
+    async deleteUser(req, res) {
+        try {
+            const { uid } = req.params;
+            await UserModel.findByIdAndDelete(uid);
+            res.json({ message: "Usuario eliminado correctamente" });
+        } catch (error) {
+            logger.error("Error al eliminar el usuario:", error.message);
+            res.status(500).send("Error interno del servidor");
+        }
+    }
+
+
   
     
 
