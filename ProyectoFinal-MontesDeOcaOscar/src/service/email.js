@@ -75,8 +75,26 @@ class EmailManager {
             console.error("Error al enviar correo electrónico:", error);
             throw new Error("Error al enviar correo electrónico");
         }
+    }
 
-        
+    async enviarCorreoProductoEliminado(email, first_name, producto) {
+        try {
+            const mailOptions = {
+                from: "Tienda de Videojuegos <TiendaGaming@gmail.com>",
+                to: email,
+                subject: 'Producto Eliminado',
+                html: `
+                    <h1>Producto Eliminado</h1>
+                    <p>Hola ${first_name},</p>
+                    <p>El producto "${producto}" ha sido eliminado de tu cuenta.</p>
+                `
+            };
+
+            await this.transporter.sendMail(mailOptions);
+        } catch (error) {
+            console.error('Error al enviar el correo electrónico:', error);
+            throw new Error('Error al enviar el correo electrónico');
+        }
     }
 }
 
