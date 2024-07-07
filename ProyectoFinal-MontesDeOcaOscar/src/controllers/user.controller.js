@@ -6,12 +6,11 @@ const UserDTO = require("../dto/user.dto.js");
 const passport = require("passport");
 const { logger } = require("../config/logger.config.js"); // Importar el logger
 const { generateResetToken } = require("../utils/tokenreset.js");
-const fs = require("fs"); 
-const path = require("path"); 
+const fs = require("fs");
+const path = require("path");
 
 const EmailManager = require("../service/email.js");
 const emailManager = new EmailManager();
-
 
 class UserController {
     async register(req, res) {
@@ -127,13 +126,6 @@ class UserController {
         });
     }
 
-    async admin(req, res) {
-        if (req.user.user.role !== "admin") {
-            return res.status(403).send("Acceso denegado");
-        }
-        res.render("admin");
-    }
-
     async requestPasswordReset(req, res) {
         const { email } = req.body;
 
@@ -207,27 +199,27 @@ class UserController {
 
     async cambiarRolPremium(req, res) {
         const { uid } = req.params;
-    
+
         try {
             const user = await UserModel.findById(uid);
-    
+
             if (!user) {
                 return res.status(404).json({ message: 'Usuario no encontrado' });
             }
-    
+
             // Verificar si los documentos requeridos están presentes
             const requiredDocuments = ["Identificacion", "Comprobante de domicilio", "Comprobante de estado de cuenta"];
             const uploadedDocuments = user.documents.map(doc => doc.name.split(".")[0]); // Extraer el nombre del documento sin la extensión
-    
+
             const missingDocuments = requiredDocuments.filter(doc => !uploadedDocuments.includes(doc));
-    
+
             if (missingDocuments.length > 0) {
                 return res.status(400).json({ message: `Debe cargar los documentos requeridos antes de actualizar a premium: ${missingDocuments.join(", ")}` });
             }
-    
+
             // Cambiar el rol del usuario a 'premium'
             const nuevoRol = user.role === 'usuario' ? 'premium' : 'usuario';
-    
+
             const actualizado = await UserModel.findByIdAndUpdate(uid, { role: nuevoRol }, { new: true });
             res.json(actualizado);
         } catch (error) {
@@ -235,29 +227,28 @@ class UserController {
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     }
-    
 
     async subirDocumentos(req, res) {
         const { uid } = req.params;
         const uploadedDocuments = req.files;
-    
+
         try {
             const user = await UserModel.findById(uid);
-    
+
             if (!user) {
                 return res.status(404).send("Usuario no encontrado");
             }
-    
+
             // Validar documentos requeridos
             const requiredDocuments = ["Identificacion", "Comprobante de domicilio", "Comprobante de estado de cuenta"];
             const uploadedDocumentNames = [];
-    
+
             // Procesar los documentos subidos y normalizar los nombres
             if (uploadedDocuments) {
                 if (uploadedDocuments.document) {
                     uploadedDocuments.document.forEach(doc => {
                         let documentType = "UnknownDocument";
-    
+
                         if (doc.originalname.includes("Identificacion")) {
                             documentType = "Identificacion";
                         } else if (doc.originalname.includes("Comprobante de domicilio")) {
@@ -265,16 +256,16 @@ class UserController {
                         } else if (doc.originalname.includes("Comprobante de estado de cuenta")) {
                             documentType = "Comprobante de estado de cuenta";
                         }
-    
+
                         const normalizedFileName = `${documentType}_${uid}_${Date.now()}${path.extname(doc.originalname)}`;
                         const destinationPath = `./src/uploads/documents/${normalizedFileName}`;
-    
+
                         // Mover archivo a la carpeta correspondiente
                         fs.renameSync(doc.path, destinationPath);
-    
+
                         // Agregar a la lista de nombres de documentos subidos
                         uploadedDocumentNames.push(documentType);
-    
+
                         // Actualizar referencia en el usuario
                         user.documents.push({
                             name: documentType,
@@ -283,17 +274,17 @@ class UserController {
                     });
                 }
             }
-    
+
             // Verificar si todos los documentos requeridos están presentes
             const missingDocuments = requiredDocuments.filter(doc => !uploadedDocumentNames.includes(doc));
-    
+
             if (missingDocuments.length > 0) {
                 return res.status(400).json({ message: `Debe cargar los documentos requeridos antes de actualizar a premium: ${missingDocuments.join(", ")}` });
             }
-    
+
             // Guardar cambios en el usuario
             await user.save();
-    
+
             res.status(200).send("Documentos cargados exitosamente");
         } catch (error) {
             console.error(error);
@@ -301,7 +292,7 @@ class UserController {
         }
     }
 
-    //Obtener todos los usuarios
+    // Obtener todos los usuarios
     async getAllUsers(req, res) {
         try {
             const users = await UserModel.find({}, 'first_name last_name email role');
@@ -312,7 +303,7 @@ class UserController {
         }
     }
 
-    //Eliminar usuarios inactivos
+    // Eliminar usuarios inactivos
     async deleteInactiveUsers(req, res) {
         try {
             const now = new Date();
@@ -330,11 +321,21 @@ class UserController {
             res.status(500).send("Error interno del servidor");
         }
     }
+
     // Obtener la vista de administración de usuarios
-    async getUserAdminView(req, res) {
+    async adminView(req, res) {
+        const usuario = req.user;
         try {
+            // Verificar si el usuario tiene el rol de "admin"
+            if (req.user.role !== "admin") {
+                return res.status(403).send("Acceso denegado");
+            }
+
+            // Obtener la lista de usuarios si el rol es "admin"
             const users = await UserModel.find({}, 'first_name last_name email role');
-            res.render("adminUsers", { users });
+
+            // Renderizar la vista de administración con la lista de usuarios
+            res.render("admin", { role: usuario.role, email: usuario.email, users });
         } catch (error) {
             logger.error("Error al obtener la vista de administración de usuarios:", error.message);
             res.status(500).send("Error interno del servidor");
@@ -342,36 +343,48 @@ class UserController {
     }
 
     // Cambiar el rol de un usuario
-    async changeUserRole(req, res) {
+    async cambiarRol(req, res) {
         try {
             const { uid } = req.params;
-            const { role } = req.body;
-            const user = await UserModel.findByIdAndUpdate(uid, { role }, { new: true });
-            res.json(user);
+            const { role } = req.query; // Nuevo rol recibido desde la query params o body
+    
+            const user = await UserModel.findById(uid);
+    
+            if (!user) {
+                return res.status(404).json({ message: 'Usuario no encontrado' });
+            }
+    
+            const rolesValidos = ['usuario', 'premium', 'admin'];
+    
+            if (!rolesValidos.includes(role)) {
+                return res.status(400).json({ message: 'Rol no válido' });
+            }
+    
+            const actualizado = await UserModel.findByIdAndUpdate(uid, { role }, { new: true });
+            res.json(actualizado);
         } catch (error) {
-            logger.error("Error al cambiar el rol del usuario:", error.message);
-            res.status(500).send("Error interno del servidor");
+            console.error(error);
+            res.status(500).json({ message: 'Error interno del servidor' });
         }
     }
+    
 
     // Eliminar un usuario
     async deleteUser(req, res) {
         try {
             const { uid } = req.params;
-            await UserModel.findByIdAndDelete(uid);
+            const user = await UserModel.findByIdAndDelete(uid);
+
+            if (!user) {
+                return res.status(404).json({ message: 'Usuario no encontrado' });
+            }
+
             res.json({ message: "Usuario eliminado correctamente" });
         } catch (error) {
             logger.error("Error al eliminar el usuario:", error.message);
             res.status(500).send("Error interno del servidor");
         }
     }
-
-
-  
-    
-
-
 }
 
 module.exports = UserController;
- 

@@ -19,7 +19,5 @@ router.get("/", viewsController.renderHome);
 router.get("/reset-password", viewsController.renderResetPassword);
 router.get("/password", viewsController.renderCambioPassword);
 router.get("/confirmacion-envio", viewsController.renderConfirmacion); 
-//Entrega final
-router.get("/admin", authMiddleware, checkUserRole(['admin']), userController.getUserAdminView);
 
 module.exports = router;

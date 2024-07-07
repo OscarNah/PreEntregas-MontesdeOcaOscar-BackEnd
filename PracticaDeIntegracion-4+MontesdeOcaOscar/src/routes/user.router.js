@@ -1,6 +1,7 @@
 const express = require("express");
 const UserController = require("../controllers/user.controller.js");
 const router = express.Router();
+const checkUserRole = require("../middleware/checkrole.js");
 const passport = require("passport");
 
 const userController = new UserController();
@@ -10,7 +11,7 @@ router.post("/login", userController.login);
 router.get("/profile", passport.authenticate("jwt", { session: false }), userController.profile);
 router.post("/logout", userController.logout.bind(userController));
 // Admin
-router.get("/admin", passport.authenticate("jwt", { session: false }), userController.admin);
+router.get("/admin", checkUserRole(['admin']),passport.authenticate('jwt', { session: false }), userController.admin);
 // GitHub
 router.get("/auth/github", userController.githubAuth);
 router.get("/auth/github/callback", userController.githubAuthCallback);

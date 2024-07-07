@@ -6,9 +6,8 @@ const session = require("express-session");
 const passport = require("passport");
 const MongoStore = require("connect-mongo");
 const compression = require("express-compression");
-// Swagger
-const swaggerJSDoc = require("swagger-jsdoc");
-const swaggerUiExpress = require("swagger-ui-express");
+const { allowInsecurePrototypeAccess } = require('@handlebars/allow-prototype-access');
+const Handlebars = require('handlebars');
 const { logger, addLogger } = require("./config/logger.config.js");
 const initializePassport = require("./config/passport.config.js")(passport); // Llamando a initializePassport con passport como argumento
 const manejadorError = require("./middleware/error.js");
@@ -24,18 +23,21 @@ const PUERTO = 8080;
 require("./database.js");
 
 //SWAGGER
+const swaggerJSDoc = require("swagger-jsdoc");
+const swaggerUiExpress = require("swagger-ui-express");
+
 const swaggerOptions = {
   swaggerDefinition: {
-      openapi: '3.0.0',
-      info: {
-          title: 'Tienda de videojuegos',
-          version: '1.0.0',
-          description: 'Bienvenido a tu tienda de videojuegos de confianza.',
-          contact: {
-              name: 'Oscar Montes de Oca Nah'
-          },
-          servers: ['http://localhost:8080']
+    openapi: '3.0.0',
+    info: {
+      title: 'Tienda de videojuegos',
+      version: '1.0.0',
+      description: 'Bienvenido a tu tienda de videojuegos de confianza.',
+      contact: {
+        name: 'Oscar Montes de Oca Nah'
       },
+      servers: ['http://localhost:8080']
+    },
   },
   apis: ["./src/docs/**/*.yaml"]
 }
@@ -56,9 +58,8 @@ app.use(
     resave: true,
     saveUninitialized: true,
     store: MongoStore.create({
-      mongoUrl:
-        "mongodb+srv://1im4montesdeocaoscar:coderhouse@cluster0.pjihogn.mongodb.net/Ecommerce?retryWrites=true&w=majority&appName=Cluster0",
-      ttl: 100,
+      mongoUrl: "mongodb+srv://1im4montesdeocaoscar:coderhouse@cluster0.pjihogn.mongodb.net/Ecommerce?retryWrites=true&w=majority&appName=Cluster0",
+      ttl: 100,  // Ajusta este valor según tus necesidades
     }),
   })
 );
@@ -67,14 +68,19 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Handlebars
-app.engine("handlebars", exphbs.engine());
-app.set("view engine", "handlebars");
-app.set("views", "./src/views");
 // Configuración de Handlebars con el helper 'eq'
 const hbsHelpers = {
   eq: (a, b) => a === b
 };
+
+// Handlebars
+// Opción 2: Usar exphbs.engine()
+app.engine('handlebars', exphbs.engine({
+  handlebars: allowInsecurePrototypeAccess(Handlebars),
+  helpers: hbsHelpers  // Asegúrate de pasar tus helpers aquí si los necesitas
+}));
+app.set('view engine', 'handlebars');
+app.set('views', './src/views');
 
 //AuthMiddleware
 app.use(authMiddleware);
@@ -84,14 +90,18 @@ app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
 app.use("/api/users", userRouter);
 app.use("/", viewsRouter, mockRouter);
+
 // Configuración de Swagger
 app.use("/apidocs", swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
+
 // Middleware global de manejo de errores
 app.use(manejadorError);
+
 // Inicio del servidor
 const httpServer = app.listen(PUERTO, () => {
   console.log(`Servidor escuchando en el puerto ${PUERTO}`);
 });
+
 // Configuración de Websockets
 const SocketManager = require("./sockets/socketmanager.js");
 new SocketManager(httpServer);

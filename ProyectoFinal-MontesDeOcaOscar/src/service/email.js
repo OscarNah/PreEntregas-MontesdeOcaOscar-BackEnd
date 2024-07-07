@@ -62,7 +62,7 @@ class EmailManager {
                 to: email,
                 subject: 'Su cuenta a sido eliminada por inactividad',
                 html: `
-                    <h1>CEUNTA ELIMINADA DE LA PAGINA TIENDA GAMING</h1>
+                    <h1>CUENTA ELIMINADA DE LA PAGINA TIENDA GAMING</h1>
                     <p>Hola ${first_name},</p>
                     <p>Se le informa que su cuenta a sido eliminada debido a la inactividad de su cuenta.</p>
                     <p>Lo invitamos a registrarse de nuevo</p>
